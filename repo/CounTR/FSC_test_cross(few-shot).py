@@ -145,11 +145,11 @@ def main(args):
         gt_cnt = gt_dots.shape[1]
         
         thres_dict = {
-            4: 11, # window splits (4): pixel size (15)
+            4: None, # window splits (4): pixel size (15)
             9: 10,
-            16: 8, # 16, 8
+            16: None, # 16, 8
         }
-        thres_dots = 200
+        thres_dots = None
 
         r_cnt = 0
         s_cnt = 0 # window split size

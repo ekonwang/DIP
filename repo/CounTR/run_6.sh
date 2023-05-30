@@ -2,5 +2,5 @@ tag=6
 dir=./data/out/finetune_${tag}
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/conda/envs/countr/lib
 # CUDA_VISIBLE_DEVICES=1 python -u FSC_finetune_cross.py --wandb debug --epochs 1000 --batch_size 8 --lr 1e-5 --output_dir ${dir} --extract resnet50 --relu_p  --title finetuning_${tag} --resume ./data/out/pretrain/checkpoint__pretraining_299.pth | tee logs/val_${tag}.log
-# CUDA_VISIBLE_DEVICES=1 python -u FSC_finetune_cross.py --wandb debug --epochs 500 --lr_sched --epochs_per_save 10 --batch_size 8 --lr 1e-5 --output_dir ${dir} --adaption --extract resnet34 --title finetuning_${tag} --resume ./data/out/finetune/checkpoint__finetuning_minMAE.pth | tee logs/val_${tag}.log
+# CUDA_VISIBLE_DEVICES=1 python -u FSC_finetune_cross.py --wandb debug --epochs 500 --lr_sched --epochs_per_save 10 --batch_size 8 --lr 1e-5 --output_dir ${dir} --adaption --extract resnet34 --title finetuning_${tag} --resume ./data/out/pretrain/checkpoint__pretraining_299.pth | tee logs/val_${tag}.log
 CUDA_VISIBLE_DEVICES=3 python -u FSC_test_cross\(few-shot\).py --output_dir ./data/out/results_${tag} --extract resnet34 --adaption --resume ${dir}/checkpoint__finetuning_minRMSE.pth --box_bound 3 | tee logs/finetune_${tag}.log
