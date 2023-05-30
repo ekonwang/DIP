@@ -12,7 +12,7 @@ from utils.fsc_trainer import FSCTrainer
 def parse_args():
     parser = argparse.ArgumentParser(description='Train ')
     parser.add_argument('--tag', default='chsnet', help='tag of training')
-    parser.add_argument('--device', default='0', help='assign device')
+    parser.add_argument('--device', default='1', help='assign device')
     parser.add_argument('--no-wandb',  action='store_true', default=False, help='whether to use wandb')
 
     parser.add_argument('--data-dir', default=r'./datasets/FSC', help='training data directory')
@@ -65,5 +65,6 @@ if __name__ == '__main__':
         wandb.init(project="FSC", name=args.tag, config=vars(args))
     trainer = FSCTrainer(args)
     trainer.setup()
+    trainer.val_epoch()
     trainer.train()
     wandb.finish()

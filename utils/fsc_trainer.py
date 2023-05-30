@@ -63,6 +63,7 @@ class FSCTrainer(Trainer):
         self.best_mse = np.inf
         self.best_mae_at = 0
         self.best_count = 0
+        self.epoch = -1
 
         self.start_epoch = 0
         if args.resume:
@@ -122,6 +123,7 @@ class FSCTrainer(Trainer):
                 epoch_loss.update(loss.item(), N)
                 epoch_mse.update(np.mean(res * res), N)
                 epoch_mae.update(np.mean(abs(res)), N)
+            # break
 
         logging.info('Epoch {} Train, Loss: {:.2f}, MSE: {:.2f} MAE: {:.2f}, Cost {:.1f} sec'
                      .format(self.epoch, epoch_loss.get_avg(), np.sqrt(epoch_mse.get_avg()), epoch_mae.get_avg(),
@@ -142,12 +144,13 @@ class FSCTrainer(Trainer):
         }, save_path)
         self.save_list.append(save_path)  # control the number of saved models
 
-    def val_epoch(self):
+    def val_epoch(self, split='val'):
         epoch_start = time.time()
         self.model.eval()
         epoch_res = []
+        epoch_RCE = []
 
-        for inputs, count, ex_list, name in tqdm(self.dataloaders['val']):
+        for inputs, count, ex_list, name in tqdm(self.dataloaders[split]):
             inputs = inputs.to(self.device)
             # inputs are images with different sizes
             b, c, h, w = inputs.shape
@@ -185,14 +188,20 @@ class FSCTrainer(Trainer):
                     pre_count = torch.sum(output)
 
             epoch_res.append(count[0].item() - pre_count.item() / self.args.log_param)
+            epoch_RCE.append(abs(count[0].item() - pre_count.item() / self.args.log_param) / count[0].item())
+            # import pdb; pdb.set_trace()
             # epoch_res.append(count[0].item())
 
         epoch_res = np.array(epoch_res)
+        epoch_RCE = np.array(epoch_RCE)
+        epoch_RSCE = epoch_RCE ** 2
         mse = np.sqrt(np.mean(np.square(epoch_res)))
         mae = np.mean(np.abs(epoch_res))
+        rce = np.mean(epoch_RCE)
+        rrsce = np.sqrt(np.mean(epoch_RSCE))
 
-        logging.info('Epoch {} Val, MSE: {:.2f} MAE: {:.2f}, Cost {:.1f} sec'
-                     .format(self.epoch, mse, mae, time.time() - epoch_start))
+        logging.info('Epoch {} Val, MSE: {:.2f} MAE: {:.2f}, RCE: {:.4f}, RSCE: {:.4f}, Cost {:.1f} sec'
+                     .format(self.epoch, mse, mae, rce, rrsce, time.time() - epoch_start))
 
         model_state_dic = self.model.state_dict()
         if mae < self.best_mae:
@@ -213,5 +222,4 @@ class FSCTrainer(Trainer):
                        'Val/MAE': mae,
                        'Val/MSE': mse,
                       }, step=self.epoch)
-
-
+    

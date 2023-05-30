@@ -119,7 +119,7 @@ class TestData(Dataset):
     def __init__(self, data_split, im_dir, annotations,
                  external: bool, box_bound: int = -1):
 
-        self.img = data_split['val']
+        self.img = data_split['test']
         self.img_dir = im_dir
         self.external = external
         self.box_bound = box_bound

@@ -10,7 +10,7 @@ set -e
 
 # CUDA_VISIBLE_DEVICES=0 python FSC_pretrain.py --epochs 300 --batch_size 16 --lr 5e-6 --output_dir ./data/out/pretrain  --title CounTR_pretraining_paper
 # CUDA_VISIBLE_DEVICES=0 python FSC_finetune_cross.py --epochs 1000 --batch_size 8 --lr 1e-5 --output_dir ./data/out/finetune  --title CounTR_finetuning_paper --resume ./data/out/pretrain/checkpoint__pretraining_299.pth
-CUDA_VISIBLE_DEVICES=2 python -u FSC_test_cross\(few-shot\).py --output_dir ./data/out/results_base --resume ./data/out/finetune/checkpoint__finetuning_minMAE.pth --box_bound 3 | tee logs/test_multiScale_predThres.log
+CUDA_VISIBLE_DEVICES=1 python -u FSC_test_cross\(few-shot\).py --output_dir ./data/out/results_base --resume ./data/out/finetune/checkpoint__finetuning_minMAE.pth --box_bound 3 | tee logs/test_multiScale_2_noPred.log
 # python FSC_test_cross\(zero-shot\).py --output_dir ./data/out/results_base_zero_shot --resume ./data/out/finetune/checkpoint__finetuning_minMAE.pth | tee ./logs/test_zero_shot.log
 
 # *** reproduce pre-training and fine-tuning described in the paper, using the large MAE model ***

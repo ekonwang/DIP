@@ -99,14 +99,12 @@ def main(args):
     )
 
     # define the model
-    # model = models_mae_cross.__dict__[args.model](norm_pix_loss=args.norm_pix_loss, relu_p=args.relu_p, extract=args.extract, adaption=args.adaption)
     model = test_utils.load_model(args)
     
     model.to(device)
     model_without_ddp = model
 
     print("Model = %s" % str(model_without_ddp))
-    # exit(0)
 
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(model, device_ids=[args.gpu], find_unused_parameters=True)
@@ -151,7 +149,7 @@ def main(args):
             9: 10,
             16: 8, # 16, 8
         }
-        thres_dots = 500
+        thres_dots = 200
 
         r_cnt = 0
         s_cnt = 0 # window split size
@@ -177,77 +175,13 @@ def main(args):
             pred_cnt = 0
             for r_image in r_images:
                 r_image = transforms.Resize((h, w))(r_image).unsqueeze(0)
-                # density_map = torch.zeros([h, w])
-                # density_map = density_map.to(device, non_blocking=True)
-                # start = 0
-                # prev = -1
-
-                # with torch.no_grad():
-                #     while start + 383 < w:
-                #         output, = model(r_image[:, :, :, start:start + 384], boxes, num_boxes)
-                #         output = output.squeeze(0)
-                #         b1 = nn.ZeroPad2d(padding=(start, w - prev - 1, 0, 0))
-                #         d1 = b1(output[:, 0:prev - start + 1])
-                #         b2 = nn.ZeroPad2d(padding=(prev + 1, w - start - 384, 0, 0))
-                #         d2 = b2(output[:, prev - start + 1:384])
-
-                #         b3 = nn.ZeroPad2d(padding=(0, w - start, 0, 0))
-                #         density_map_l = b3(density_map[:, 0:start])
-                #         density_map_m = b1(density_map[:, start:prev + 1])
-                #         b4 = nn.ZeroPad2d(padding=(prev + 1, 0, 0, 0))
-                #         density_map_r = b4(density_map[:, prev + 1:w])
-
-                #         density_map = density_map_l + density_map_r + density_map_m / 2 + d1 / 2 + d2
-
-                #         prev = start + 383
-                #         start = start + 128
-                #         if start + 383 >= w:
-                #             if start == w - 384 + 128:
-                #                 break
-                #             else:
-                #                 start = w - 384
-                # pred_cnt += torch.sum(density_map / 60).item()
-                ## pred_cnt += torch.sum(torch.abs(density_map) / 60).item()
-                # r_densities += [density_map]
                 
                 single_pred, density_map = inference_once(model, r_image, boxes, num_boxes, device, h, w)
                 pred_cnt += single_pred
                 r_densities += [density_map]
         else:
-            # density_map = torch.zeros([h, w])
-            # density_map = density_map.to(device, non_blocking=True)
-            # start = 0
-            # prev = -1
-            # with torch.no_grad():
-            #     while start + 383 < w:
-            #         output, = model(samples[:, :, :, start:start + 384], boxes, num_boxes)
-            #         output = output.squeeze(0)
-            #         b1 = nn.ZeroPad2d(padding=(start, w - prev - 1, 0, 0))
-            #         d1 = b1(output[:, 0:prev - start + 1])
-            #         b2 = nn.ZeroPad2d(padding=(prev + 1, w - start - 384, 0, 0))
-            #         d2 = b2(output[:, prev - start + 1:384])
-
-            #         b3 = nn.ZeroPad2d(padding=(0, w - start, 0, 0))
-            #         density_map_l = b3(density_map[:, 0:start])
-            #         density_map_m = b1(density_map[:, start:prev + 1])
-            #         b4 = nn.ZeroPad2d(padding=(prev + 1, 0, 0, 0))
-            #         density_map_r = b4(density_map[:, prev + 1:w])
-
-            #         density_map = density_map_l + density_map_r + density_map_m / 2 + d1 / 2 + d2
-
-            #         prev = start + 383
-            #         start = start + 128
-            #         if start + 383 >= w:
-            #             if start == w - 384 + 128:
-            #                 break
-            #             else:
-            #                 start = w - 384
-
-            ## pred_cnt = torch.sum(torch.abs(density_map) / 60).item()
-            # pred_cnt = torch.sum(density_map / 60).item()
             pred_cnt, density_map = inference_once(model, samples, boxes, num_boxes, device, h, w)
             
-
         if args.normalization:
             e_cnt = 0
             for rect in pos:
@@ -304,7 +238,7 @@ def main(args):
                  'RMSE': (train_rmse / (len(data_loader_test))) ** 0.5}
 
     try:
-        print('Current MAE: {:5.2f}, RMSE: {:5.2f}, RCE {:5.2f}, RSCE {:5.2f}'.format(train_mae / (len(data_loader_test)), (
+        print('Current MAE: {:5.2f}, RMSE: {:5.2f}, RCE {:5.4f}, RSCE {:5.4f}'.format(train_mae / (len(data_loader_test)), (
                     train_rmse / (len(data_loader_test))) ** 0.5,
                     rce / len(data_loader_test),
                     (rsce / len(data_loader_test)) ** 0.5))
