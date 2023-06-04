@@ -216,18 +216,19 @@ def main(args):
                     box_map[min(rect[0], fig.shape[1] - 1), min(rect[1] + i, fig.shape[2] - 1)] = 10
                     box_map[min(rect[2], fig.shape[1] - 1), min(rect[1] + i, fig.shape[2] - 1)] = 10
             box_map = box_map.unsqueeze(0).repeat(3, 1, 1)
-        # pred = density_map.unsqueeze(0) if (s_cnt < 1 or args.no_seg) else misc.make_grid(r_densities, h, w).unsqueeze(0)
-        # pred = torch.cat((pred, torch.zeros_like(pred), torch.zeros_like(pred))) * 5
-        # fig = fig + pred + box_map
-        # fig = torch.clamp(fig, 0, 1)
+            
+        pred = density_map.unsqueeze(0) if (s_cnt < 1 or args.no_seg) else misc.make_grid(r_densities, h, w).unsqueeze(0)
+        pred = torch.cat((pred, torch.zeros_like(pred), torch.zeros_like(pred))) * 5
+        fig = fig + pred + box_map
+        fig = torch.clamp(fig, 0, 1)
 
-        # pred_img = Image.new(mode="RGB", size=(w, h), color=(0, 0, 0))
-        # draw = ImageDraw.Draw(pred_img)
-        # draw.text((w-50, h-50), str(round(pred_cnt)), (255, 255, 255))
-        # pred_img = np.array(pred_img).transpose((2, 0, 1))
-        # pred_img = torch.tensor(np.array(pred_img), device=device) + pred
-        # full = torch.cat((samples[0], fig, pred_img), -1)
-        # torchvision.utils.save_image(full, (os.path.join(args.output_dir, f'full_{im_name.stem}__{round(pred_cnt)}{im_name.suffix}')))
+        pred_img = Image.new(mode="RGB", size=(w, h), color=(0, 0, 0))
+        draw = ImageDraw.Draw(pred_img)
+        draw.text((w-50, h-50), str(round(pred_cnt)), (255, 255, 255))
+        pred_img = np.array(pred_img).transpose((2, 0, 1))
+        pred_img = torch.tensor(np.array(pred_img), device=device) + pred
+        full = torch.cat((samples[0], fig, pred_img), -1)
+        torchvision.utils.save_image(full, (os.path.join(args.output_dir, f'full_{im_name.stem}__{round(pred_cnt)}{im_name.suffix}')))
 
         torch.cuda.synchronize()
 
